@@ -1,0 +1,81 @@
+version: 2
+
+models:
+  - name: stg_communes
+    description: >
+      Référentiel géographique COG 2026 conservant les communes
+      et les arrondissements municipaux. Sert à enrichir les
+      établissements à partir de leur code commune INSEE.
+
+    columns:
+      - name: code_commune
+        description: Code INSEE de la commune ou de l'arrondissement municipal.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: type_commune
+        description: COM pour une commune, ARM pour un arrondissement municipal.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['COM', 'ARM']
+
+      - name: nom_commune
+        description: Libellé officiel de la commune ou de l'arrondissement.
+        data_tests:
+          - not_null
+
+      - name: code_departement
+        description: Code du département, conservé au format texte.
+
+      - name: code_region
+        description: Code de la région, conservé au format texte.
+
+      - name: code_commune_parente
+        description: >
+          Code INSEE de la commune de rattachement pour les
+          arrondissements municipaux. Vide dans la source
+          lorsque ce rattachement ne s'applique pas.
+
+  - name: stg_departements
+    description: >
+      Référentiel des départements du COG 2026,
+      avec leur région de rattachement.
+
+    columns:
+      - name: code_departement
+        description: Code du département, conservé au format texte.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: nom_departement
+        description: Libellé officiel du département.
+        data_tests:
+          - not_null
+
+      - name: code_region
+        description: Code de la région de rattachement.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_regions')
+                field: code_region
+
+  - name: stg_regions
+    description: Référentiel des régions du COG 2026.
+
+    columns:
+      - name: code_region
+        description: Code de la région, conservé au format texte.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: nom_region
+        description: Libellé officiel de la région.
+        data_tests:
+          - not_null

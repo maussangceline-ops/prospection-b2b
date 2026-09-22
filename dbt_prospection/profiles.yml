@@ -1,0 +1,9 @@
+prospection_b2b:
+  target: dev
+
+  outputs:
+    dev:
+      type: duckdb
+      path: /Users/maussangceline/Documents/jedha_exercices/prospection-b2b/data/warehouse/prospection.duckdb
+      schema: analytics
+      threads: 1

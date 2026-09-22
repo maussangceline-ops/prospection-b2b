@@ -1,0 +1,23 @@
+version: 2
+
+sources:
+  - name: prospection_raw
+    description: "Données Sirene et référentiels COG chargés depuis S3."
+    database: prospection
+    schema: raw
+
+    tables:
+      - name: sirene_etablissements
+        description: "JSON complet de chaque établissement, avec ses périodes historiques."
+
+      - name: collectes
+        description: "Dernière collecte terminée retenue pour chaque mois."
+
+      - name: communes
+        description: "Référentiel des communes et arrondissements municipaux du COG 2026."
+
+      - name: departements
+        description: "Référentiel des départements du COG 2026."
+
+      - name: regions
+        description: "Référentiel des régions du COG 2026."

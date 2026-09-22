@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: int_etablissements_enrichis
+    description: >
+      Établissements Sirene enrichis avec les libellés géographiques
+      du COG 2026. Une ligne par SIRET.
+      Les jointures conservent tous les établissements du staging,
+      quels que soient leur statut de diffusion et la disponibilité
+      de leur code postal.
+
+    columns:
+      - name: siret
+        description: Identifiant unique de l'établissement.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: code_commune
+        description: Code commune INSEE fourni par Sirene.
+
+      - name: nom_commune
+        description: Nom de la commune ou de l'arrondissement municipal.
+        data_tests:
+          - not_null
+
+      - name: type_commune
+        description: COM pour une commune, ARM pour un arrondissement municipal.
+
+      - name: code_commune_parente
+        description: Commune de rattachement d'un arrondissement municipal.
+
+      - name: code_departement
+        description: Code du département issu du COG.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['75', '77', '78', '91', '92', '93', '94', '95']
+
+      - name: nom_departement
+        description: Libellé officiel du département.
+        data_tests:
+          - not_null
+
+      - name: code_region
+        description: Code région du COG ; 11 pour l'Île-de-France.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['11']
+
+      - name: nom_region
+        description: Libellé officiel de la région.
+        data_tests:
+          - not_null

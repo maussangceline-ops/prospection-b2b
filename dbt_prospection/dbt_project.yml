@@ -1,0 +1,13 @@
+name: prospection_b2b
+version: "1.0.0"
+config-version: 2
+
+profile: prospection_b2b
+
+model-paths: ["models"]
+test-paths: ["tests"]
+
+models:
+  prospection_b2b:
+    staging:
+      +materialized: view

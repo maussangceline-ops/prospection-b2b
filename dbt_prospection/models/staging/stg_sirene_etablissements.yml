@@ -1,0 +1,136 @@
+version: 2
+
+models:
+  - name: stg_sirene_etablissements
+    description: >
+      Préparation des établissements issus des collectes mensuelles
+      Sirene. La période de l'établissement est sélectionnée à la
+      date de référence de chaque collecte.
+      Tous les statuts de diffusion sont conservés.
+      Les codes postaux masqués sont remplacés par NULL et signalés
+      par un indicateur dédié.
+
+    columns:
+      - name: siret
+        description: Identifiant de l'établissement, conservé en texte.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: siren
+        description: Identifiant de l'entreprise, conservé en texte.
+        data_tests:
+          - not_null
+
+      - name: mois_collecte
+        description: Mois de création ciblé, au format YYYY-MM.
+        data_tests:
+          - not_null
+
+      - name: collecte_id
+        description: Identifiant de l'exécution retenue pour ce mois.
+        data_tests:
+          - not_null
+
+      - name: date_reference
+        description: Date de référence utilisée pour la collecte.
+        data_tests:
+          - not_null
+
+      - name: date_creation_entreprise
+        description: Date de création de l'unité légale.
+        data_tests:
+          - not_null
+
+      - name: siege
+        description: Indique si l'établissement est le siège.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+                quote: false
+
+      - name: date_debut_periode
+        description: Début de la période applicable à la date de référence.
+        data_tests:
+          - not_null
+
+      - name: date_fin_periode
+        description: >
+          Fin de la période applicable. NULL si aucune date
+          de fin n'est renseignée.
+
+      - name: nombre_periodes_applicables
+        description: >
+          Nombre de périodes couvrant la date de référence.
+          Doit être exactement égal à 1.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1]
+                quote: false
+
+      - name: naf_etablissement
+        description: Activité de l'établissement à la date de référence.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['58.29C', '62.01Z', '62.02A']
+
+      - name: statut_etablissement
+        description: Statut de l'établissement dans la période sélectionnée.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['A']
+
+      - name: statut_entreprise
+        description: Statut de l'unité légale fourni dans la réponse collectée.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['A']
+
+      - name: diffusion_etablissement
+        description: Statut de diffusion de l'établissement, conservé sans filtre.
+
+      - name: diffusion_entreprise
+        description: Statut de diffusion de l'entreprise, conservé sans filtre.
+
+      - name: code_commune
+        description: Code INSEE utilisé pour l'enrichissement géographique.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_communes')
+                field: code_commune
+
+      - name: code_postal
+        description: >
+          Code postal fourni par Sirene. NULL lorsque la valeur
+          est absente, vide ou masquée. Aucune reconstitution.
+
+      - name: code_postal_masque
+        description: Vrai lorsque le code postal source contient [ND].
+        data_tests:
+          - not_null
+
+      - name: tranche_effectifs
+        description: >
+          Tranche d'effectifs conservée telle que reçue.
+          La valeur NN n'est pas convertie en effectif numérique.
+
+      - name: annee_effectifs
+        description: Année associée à la tranche d'effectifs, si renseignée.
+
+      - name: fichier_source
+        description: Clé du fichier JSON source dans S3.
+        data_tests:
+          - not_null
+

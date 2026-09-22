@@ -1,0 +1,96 @@
+version: 2
+
+models:
+  - name: mart_prospects_scores
+    description: >
+      Classement commercial V1 selon l'ancienneté et l'activité NAF.
+      Les moins de 3 mois et les 9 à moins de 12 mois reçoivent
+      100 points d'ancienneté ; les 3 à moins de 9 mois, 50 points.
+      
+      Bonus NAF : édition 30, conseil 20, programmation 10.
+      Orange jusqu'à 80 points inclus, vert à partir de 81.
+      À partir de 12 mois, aucun score ni couleur.
+      
+      Ce classement repose sur des hypothèses commerciales,
+      sans estimation de probabilité de conversion.
+      Les statuts Sirene restent ceux des données collectées.
+
+    columns:
+      - name: siret
+        description: Identifiant unique de l'établissement.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: date_evaluation
+        description: Date commune utilisée pour calculer l'ancienneté.
+        data_tests:
+          - not_null
+
+      - name: version_score
+        description: Version des règles commerciales appliquées.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['v1']
+
+      - name: anciennete_jours
+        description: Nombre de jours entre création et évaluation.
+        data_tests:
+          - not_null
+
+      - name: segment_anciennete
+        description: Segment commercial défini en mois calendaires.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - lancement
+                  - developpement
+                  - renouvellement_prospection
+                  - hors_perimetre_v1
+
+      - name: score_anciennete
+        description: 100 ou 50 points ; NULL hors périmètre.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [50, 100]
+                quote: false
+
+      - name: bonus_naf
+        description: Bonus de 10, 20 ou 30 points ; NULL hors périmètre.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [10, 20, 30]
+                quote: false
+
+      - name: score_total
+        description: Somme des composantes ; NULL hors périmètre.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [60, 70, 80, 110, 120, 130]
+                quote: false
+
+      - name: couleur_priorite
+        description: Orange ou vert ; NULL hors périmètre.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['orange', 'vert']
+
+      - name: angle_commercial
+        description: Proposition de message selon le segment d'ancienneté.
+
+      - name: libelle_age
+        description: >
+          Libellé d'affichage de l'ancienneté :
+          Babies avant 3 mois, Newbies de 3 à moins de 9 mois,
+          Premiers pas de 9 à moins de 12 mois,
+          puis âge en années révolues.
+        data_tests:
+          - not_null
