@@ -127,9 +127,9 @@ select
         when segment_anciennete = 'lancement'
             then 'Clarifier votre offre pour convaincre vos premiers clients.'
         when segment_anciennete = 'developpement'
-            then 'Ameliorer vos supports pour developper votre prospection.'
+            then 'Phase intermédiaire : présenter le produit et rappeler à partir du 10e mois en activite.'
         when segment_anciennete = 'renouvellement_prospection'
-            then 'Structurer vos supports pour toucher de nouveaux clients.'
+            then 'Bilan des succès année 1 pour structure votre offre et toucher de nouveaux clients.'
         else null
     end as angle_commercial
 
