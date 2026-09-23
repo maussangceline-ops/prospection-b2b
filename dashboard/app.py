@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(ROOT / '.env', override=False)
-st.set_page_config(page_title='Prospection B2B', page_icon='🌊', layout='wide')
+st.set_page_config(page_title='Prospection B2B', page_icon='🧜‍♀️', layout='wide')
 
 NAF = {
     '58.29C': 'Édition de logiciels',
@@ -50,7 +50,7 @@ def charger_donnees(mode, chemin, empreinte, bucket, cle):
 
 
 st.title('🧜‍♀️ Le chant des SIREN')
-st.caption('Des offres technologiques compréhensibles pour tous.')
+st.caption('Savoir-faire et faire savoir de la tech')
 chemin = Path(option('DUCKDB_PATH', str(ROOT / 'data/warehouse/prospection.duckdb')))
 mode = option('DATA_SOURCE', 'local' if chemin.is_file() else 's3')
 if mode not in ('local', 's3'):
@@ -102,7 +102,7 @@ if len(dates) != 1:
     st.stop()
 date_score = pd.Timestamp(dates[0]).strftime('%d/%m/%Y')
 st.caption(f"Évaluation au {date_score} · Créations collectées de {donnees['mois_collecte'].min()} à {donnees['mois_collecte'].max()}")
-st.caption('Les statuts administratifs correspondent aux collectes historiques. Ils ne constituent pas une vérification de l’activité à la date du score.')
+st.caption('Statuts administratifs correspondant à la date de collecte')
 
 st.sidebar.header('Votre sélection')
 priorites = st.sidebar.multiselect('Priorité', list(PRIORITES.values()) + ['Hors périmètre V1'], default=list(PRIORITES.values()) + ['Hors périmètre V1'])
