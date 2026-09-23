@@ -67,6 +67,8 @@ jobs:
         run: python upload_raw_s3.py
       - name: Reconstruire DuckDB depuis toutes les collectes S3
         run: python load_raw_duckdb.py
+      - name: Actualiser le référentiel postal La Poste
+        run: python load_codes_postaux.py
       - name: Transformer et tester toute la chaîne
         run: dbt build --project-dir dbt_prospection --profiles-dir deployment/dbt
       - name: Publier les résultats pour Streamlit

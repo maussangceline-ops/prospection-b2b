@@ -114,3 +114,13 @@ models:
       - name: libelle_categorie_juridique
         description: Libellé simplifié des catégories courantes, sinon code conservé.
         data_tests: [not_null]
+
+      - name: admissible_prospection
+        description: >
+          Actif à la dernière vérification et aucune procédure collective repérée.
+          Filtre de sélection, sans modification du score ; l'âge V1 reste distinct.
+        data_tests: [not_null]
+      - name: statut_bodacc
+        data_tests: [not_null]
+      - name: date_verification_bodacc
+        data_tests: [not_null]

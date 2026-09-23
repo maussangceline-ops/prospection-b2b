@@ -17,12 +17,24 @@ with entreprises as (
         coalesce(stg_activite_actuelle.etat_activite, 'À vérifier') as etat_activite,
         coalesce(stg_activite_actuelle.etat_activite = 'Actif', false)
             as activite_confirmee,
+        stg_bodacc_controles.date_verification_bodacc,
+        coalesce(stg_bodacc_controles.statut_bodacc, 'À vérifier') as statut_bodacc,
+        coalesce(stg_bodacc_controles.motif_bodacc, 'Contrôle BODACC absent') as motif_bodacc,
+        stg_bodacc_controles.nombre_annonces_bodacc,
+        stg_bodacc_controles.date_jugement_bodacc,
+        stg_bodacc_controles.nature_jugement_bodacc,
+        stg_bodacc_controles.url_annonce_bodacc,
+        coalesce(stg_activite_actuelle.etat_activite = 'Actif'
+            and stg_bodacc_controles.statut_bodacc = 'Aucune procédure repérée', false)
+            as admissible_prospection,
         cast('{{ date_evaluation }}' as date) as date_evaluation,
         'v1' as version_score
 
     from {{ ref('int_etablissements_enrichis') }} as int_etablissements_enrichis
     left join {{ ref('stg_activite_actuelle') }} as stg_activite_actuelle
         on int_etablissements_enrichis.siret = stg_activite_actuelle.siret
+    left join {{ ref('stg_bodacc_controles') }} as stg_bodacc_controles
+        on int_etablissements_enrichis.siren = stg_bodacc_controles.siren
 
 ),
 

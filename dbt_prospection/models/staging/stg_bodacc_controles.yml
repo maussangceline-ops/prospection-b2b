@@ -1,0 +1,28 @@
+version: 2
+sources:
+  - name: bodacc_raw
+    schema: raw
+    tables:
+      - name: bodacc_controles
+        description: Un contrôle par SIREN, produit seulement après une collecte complète.
+      - name: bodacc_annonces
+        description: Annonces originales de la dernière collecte, versions archivées dans S3.
+models:
+  - name: stg_bodacc_controles
+    description: >
+      Décision commerciale prudente à partir des annonces collectives BODACC.
+      Aucune procédure repérée ne constitue pas un certificat d'absence de procédure.
+      Les plans, clôtures et rectificatifs non résolus nécessitent une vérification.
+    columns:
+      - name: siren
+        data_tests: [not_null, unique]
+      - name: date_verification_bodacc
+        data_tests: [not_null]
+      - name: statut_bodacc
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Aucune procédure repérée', 'Exclusion — sauvegarde', 'Exclusion — redressement', 'À vérifier']
+      - name: motif_bodacc
+        data_tests: [not_null]
