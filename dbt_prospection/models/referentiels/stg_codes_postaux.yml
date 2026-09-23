@@ -1,0 +1,19 @@
+version: 2
+sources:
+  - name: postal_raw
+    schema: raw
+    tables:
+      - name: codes_postaux
+        description: Couples commune INSEE et code postal issus de La Poste ; import validé en Python.
+models:
+  - name: stg_codes_postaux
+    description: Une ligne par code commune ; aucune sélection arbitraire parmi plusieurs codes postaux.
+    columns:
+      - name: code_commune
+        data_tests: [not_null, unique]
+      - name: codes_postaux_commune
+        data_tests: [not_null]
+      - name: nombre_codes_postaux
+        data_tests: [not_null]
+      - name: date_recuperation
+        data_tests: [not_null]

@@ -44,7 +44,11 @@ periodes_typees as (
         ) as naf_etablissement,
         json_extract_string(
             periode, '$.etatAdministratifEtablissement'
-        ) as statut_etablissement
+        ) as statut_etablissement,
+        coalesce(nullif(nullif(trim(json_extract_string(periode, '$.denominationUsuelleEtablissement')), '[ND]'), ''),
+            nullif(nullif(trim(json_extract_string(periode, '$.enseigne1Etablissement')), '[ND]'), ''),
+            nullif(nullif(trim(json_extract_string(periode, '$.enseigne2Etablissement')), '[ND]'), ''),
+            nullif(nullif(trim(json_extract_string(periode, '$.enseigne3Etablissement')), '[ND]'), '')) as nom_etablissement_public
 
     from periodes_depliees
 
@@ -92,7 +96,16 @@ champs_extraits as (
                     donnees, '$.uniteLegale.denominationUsuelle1UniteLegale'
                 )
             ), '[ND]'), '')
+,
+            nullif(nullif(trim(json_extract_string(donnees, '$.uniteLegale.denominationUsuelle2UniteLegale')), '[ND]'), ''),
+            nullif(nullif(trim(json_extract_string(donnees, '$.uniteLegale.denominationUsuelle3UniteLegale')), '[ND]'), '')
         ) as nom_societe,
+
+        json_extract_string(donnees, '$.uniteLegale.categorieJuridiqueUniteLegale') as categorie_juridique,
+        json_extract_string(donnees, '$.uniteLegale.nomUniteLegale') as nom_personne_brut,
+        json_extract_string(donnees, '$.uniteLegale.nomUsageUniteLegale') as nom_usage_brut,
+        json_extract_string(donnees, '$.uniteLegale.prenomUsuelUniteLegale') as prenom_brut,
+        json_extract_string(donnees, '$.uniteLegale.denominationUniteLegale') as denomination_brute,
 
         cast(
             json_extract_string(donnees, '$.etablissementSiege')
@@ -135,8 +148,9 @@ champs_extraits as (
 
     from etablissements_bruts
 
-)
+),
 
+base as (
 select
     champs_extraits.mois_collecte,
     champs_extraits.collecte_id,
@@ -144,10 +158,12 @@ select
     champs_extraits.siret,
     champs_extraits.siren,
     champs_extraits.nom_societe,
-    coalesce(
-        champs_extraits.nom_societe,
-        'Établissement ' || champs_extraits.siret
-    ) as nom_affiche,
+    champs_extraits.categorie_juridique,
+    champs_extraits.nom_personne_brut,
+    champs_extraits.nom_usage_brut,
+    champs_extraits.prenom_brut,
+    champs_extraits.denomination_brute,
+    periodes_applicables.nom_etablissement_public,
     champs_extraits.siege,
     champs_extraits.date_creation_entreprise,
 
@@ -182,3 +198,37 @@ from champs_extraits
 
 left join periodes_applicables
     on champs_extraits.siret = periodes_applicables.siret
+),
+identites as (
+    select *,
+        coalesce(
+            nom_personne_brut = '[ND]' or nom_usage_brut = '[ND]'
+            or prenom_brut = '[ND]' or denomination_brute = '[ND]', false
+        ) or coalesce(
+            diffusion_entreprise = 'P'
+            and (categorie_juridique = '1000' or categorie_juridique like '2%'), false
+        ) as identite_masquee,
+        coalesce(
+            nom_societe,
+            nom_etablissement_public,
+            case when categorie_juridique = '1000' then
+                nullif(trim(concat_ws(' ',
+                    nullif(nullif(trim(prenom_brut), '[ND]'), ''),
+                    coalesce(nullif(nullif(trim(nom_usage_brut), '[ND]'), ''),
+                             nullif(nullif(trim(nom_personne_brut), '[ND]'), ''))
+                )), '')
+            end
+        ) as nom_disponible
+    from base
+)
+select
+    * exclude (nom_personne_brut, nom_usage_brut, prenom_brut,
+               denomination_brute, nom_etablissement_public,
+               identite_masquee, nom_disponible),
+    case when identite_masquee then 'ND'
+         when nom_disponible is not null then nom_disponible
+         else 'NR' end as nom_affiche,
+    case when identite_masquee then 'ND'
+         when nom_disponible is not null then 'Disponible'
+         else 'NR' end as disponibilite_nom
+from identites

@@ -134,3 +134,16 @@ models:
         data_tests:
           - not_null
 
+
+      - name: nom_affiche
+        description: Nom public disponible, ND (non diffusé) ou NR (non renseigné).
+        data_tests: [not_null]
+      - name: disponibilite_nom
+        description: Statut indépendant du libellé du nom ; P seul ne masque pas les sociétés.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Disponible', 'ND', 'NR']
+      - name: categorie_juridique
+        description: Catégorie juridique Sirene utilisée pour interpréter la diffusion partielle.

@@ -55,3 +55,20 @@ models:
         description: Libellé officiel de la région.
         data_tests:
           - not_null
+
+      - name: code_postal_affiche
+        description: Code Sirene prioritaire, sinon indication communale La Poste, ND ou NR.
+        data_tests: [not_null]
+      - name: source_code_postal
+        description: Provenance affichée et exportée ; un code communal ne confirme pas l'adresse.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Sirene', 'Commune (La Poste)', 'Commune : plusieurs codes', 'Aucune correspondance']
+      - name: codes_postaux_commune
+        description: Liste triée des codes distincts de la commune (séparateur virgule).
+      - name: nombre_codes_postaux_commune
+        data_tests: [not_null]
+      - name: date_referentiel_postal
+        description: Date UTC de récupération du référentiel, pas sa date de validité historique.
