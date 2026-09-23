@@ -1,5 +1,6 @@
 """Tableau de bord commercial — lecture seule, sans recalcul du score."""
 import io
+import json
 import os
 from pathlib import Path
 
@@ -76,26 +77,41 @@ except Exception:
 
 requis = {
     'siret', 'siren', 'nom_affiche', 'nom_commune', 'nom_departement',
-    'code_departement', 'code_postal', 'code_postal_masque', 'naf_etablissement',
-    'libelle_age', 'couleur_priorite', 'score_total', 'score_anciennete', 'bonus_naf',
-    'date_creation_entreprise', 'date_evaluation', 'date_reference', 'mois_collecte',
-    'angle_commercial', 'version_score', 'anciennete_jours',
-    'etat_activite', 'date_verification', 'libelle_categorie_juridique', 'activite_confirmee',
-    'disponibilite_nom', 'code_postal_affiche', 'source_code_postal', 'codes_postaux_commune',
+    'code_departement', 'naf_etablissement', 'libelle_age', 'couleur_priorite',
+    'score_total', 'date_creation_entreprise', 'date_evaluation', 'mois_collecte',
+    'angle_commercial', 'anciennete_jours', 'admissible_prospection',
+    'disponibilite_nom', 'categorie_juridique_actuelle', 'codes_postaux_commune',
 }
 if requis - set(donnees.columns):
     st.error('Les résultats ne contiennent pas toutes les colonnes attendues. Reconstruis les modèles dbt et republie les résultats.')
     st.stop()
+# Filtrage obligatoire AVANT les compteurs, options, recherche et export.
+# Les données historiques et les motifs de contrôle restent dans DuckDB/S3.
+noms = donnees['nom_affiche'].astype('string').str.strip()
+masque_commercial = (
+    donnees['admissible_prospection'].eq(True).fillna(False)
+    & donnees['disponibilite_nom'].eq('Disponible').fillna(False)
+    & noms.notna() & noms.ne('')
+    & ~noms.str.upper().isin(['ND', 'NR', '[ND]'])
+)
+donnees = donnees.loc[masque_commercial].copy()
 if donnees.empty:
-    st.info('Aucun établissement disponible.')
+    st.info('Aucune entreprise disponible pour la prospection actuellement.')
     st.stop()
-for colonne in ['siret', 'siren', 'code_departement', 'code_postal']:
+for colonne in ['siret', 'siren', 'code_departement']:
     donnees[colonne] = donnees[colonne].astype('string')
+try:
+    referentiel = json.loads((Path(__file__).parent / 'categories_juridiques.json').read_text(encoding='utf-8'))['libelles']
+except (OSError, ValueError, KeyError):
+    st.error('Le référentiel des catégories juridiques est indisponible. Contactez le responsable de l’application.')
+    st.stop()
+codes = donnees['categorie_juridique_actuelle'].astype('string').str.strip().str.replace(r'\.0$', '', regex=True).str.zfill(4)
+donnees['libelle_categorie_juridique'] = codes.map(referentiel).fillna('Forme juridique non renseignée')
 donnees['activite'] = donnees['naf_etablissement'].map(NAF).fillna('Autre activité')
-donnees['priorite'] = donnees['couleur_priorite'].map(PRIORITES).fillna('Hors périmètre V1')
+donnees['priorite'] = donnees['couleur_priorite'].map(PRIORITES).fillna('Non scorée')
 donnees['departement'] = donnees['code_departement'] + ' — ' + donnees['nom_departement']
 # L'affichage postal et sa provenance sont calculés par dbt.
-for colonne in ['date_evaluation', 'date_reference', 'date_creation_entreprise']:
+for colonne in ['date_evaluation', 'date_creation_entreprise']:
     donnees[colonne] = pd.to_datetime(donnees[colonne])
 dates = donnees['date_evaluation'].dropna().unique()
 if len(dates) != 1:
@@ -103,32 +119,19 @@ if len(dates) != 1:
     st.stop()
 date_score = pd.Timestamp(dates[0]).strftime('%d/%m/%Y')
 st.caption(f"Évaluation au {date_score} · Créations collectées de {donnees['mois_collecte'].min()} à {donnees['mois_collecte'].max()}")
-derniere_verification = pd.to_datetime(donnees['date_verification']).max()
-st.caption(f"Activité vérifiée au {derniere_verification:%d/%m/%Y} · État connu lors de cette vérification, sans mise à jour en temps réel.")
-compteurs_activite = st.columns(3)
-for bloc, etat in zip(compteurs_activite, ['Actif', 'Inactif', 'À vérifier']):
-    bloc.metric(etat + ' · base complète', int(donnees['etat_activite'].eq(etat).sum()))
-
 st.sidebar.header('Votre sélection')
-etat_selection = st.sidebar.selectbox('Activité administrative',
-    ['Actif', 'Inactif', 'À vérifier', 'Tous (historique)'])
 categories = st.sidebar.multiselect('Catégorie juridique',
     sorted(donnees['libelle_categorie_juridique'].dropna().unique()))
-priorites = st.sidebar.multiselect('Priorité', list(PRIORITES.values()) + ['Hors périmètre V1'], default=list(PRIORITES.values()) + ['Hors périmètre V1'])
+priorites = st.sidebar.multiselect('Priorité', list(PRIORITES.values()) + ['Non scorée'], default=list(PRIORITES.values()) + ['Non scorée'])
 ages = st.sidebar.multiselect('Âge', donnees.sort_values('anciennete_jours')['libelle_age'].drop_duplicates().tolist())
 activites = st.sidebar.multiselect('Activité', list(NAF.values()))
 departements = st.sidebar.multiselect('Département', sorted(donnees['departement'].dropna().unique()))
 mois = st.sidebar.multiselect('Mois de création collecté', sorted(donnees['mois_collecte'].unique()))
-disponibilite = st.sidebar.selectbox('Disponibilité du nom', ['Tous', 'Disponible', 'ND', 'NR'])
 recherche = st.sidebar.text_input('Nom, SIRET ou commune').strip()
 filtre = donnees[donnees['priorite'].isin(priorites)].copy()
-if etat_selection != 'Tous (historique)':
-    filtre = filtre[filtre['etat_activite'].eq(etat_selection)]
 for colonne, choix in [('libelle_categorie_juridique', categories), ('libelle_age', ages), ('activite', activites), ('departement', departements), ('mois_collecte', mois)]:
     if choix:
         filtre = filtre[filtre[colonne].isin(choix)]
-if disponibilite != 'Tous':
-    filtre = filtre[filtre['disponibilite_nom'].eq(disponibilite)]
 if recherche:
     masque = pd.Series(False, index=filtre.index)
     for colonne in ['nom_affiche', 'siret', 'nom_commune']:
@@ -137,15 +140,11 @@ if recherche:
 
 indicateurs = st.columns(4)
 for bloc, titre, valeur in zip(indicateurs,
-    ['Établissements sélectionnés', '🟢 Prioritaires', '🟠 Non prioritaires', 'Hors périmètre V1'],
+    ['Établissements sélectionnés', '🟢 Prioritaires', '🟠 Non prioritaires', 'Non scorées'],
     [len(filtre), filtre['couleur_priorite'].eq('vert').sum(), filtre['couleur_priorite'].eq('orange').sum(), filtre['score_total'].isna().sum()]):
     bloc.metric(titre, f'{valeur:,}'.replace(',', ' '))
-st.caption(f"Base complète : {len(donnees):,} établissements. Les indicateurs et graphiques suivent les filtres.".replace(',', ' '))
+st.caption(f"Entreprises disponibles : {len(donnees):,} établissements. Les indicateurs et graphiques suivent les filtres.".replace(',', ' '))
 
-compteurs_noms = st.columns(3)
-for bloc, statut in zip(compteurs_noms, ['Disponible', 'ND', 'NR']):
-    bloc.metric(f'Noms : {statut}', int(filtre['disponibilite_nom'].eq(statut).sum()))
-st.caption('ND : non diffusé par la source. NR : non renseigné dans les données disponibles.')
 st.caption('Code postal : code(s) associé(s) à la commune dans le référentiel La Poste, non confirmé(s) pour l’établissement.')
 
 if filtre.empty:
@@ -164,12 +163,9 @@ else:
         'nom_affiche': 'Entreprise', 'siret': 'SIRET', 'nom_commune': 'Commune',
         'codes_postaux_commune': 'Code postal',
         'activite': 'Activité', 'libelle_categorie_juridique': 'Catégorie juridique',
-        'etat_activite': 'État administratif', 'date_verification': 'Activité vérifiée le',
         'libelle_age': 'Âge', 'priorite': 'Priorité',
         'angle_commercial': 'Angle commercial', 'score_total': 'Score total',
-        'score_anciennete': 'Points ancienneté', 'bonus_naf': 'Bonus NAF', 
         'date_creation_entreprise': 'Création',
-        'date_reference': 'Référence Sirene', 'date_evaluation': 'Évaluation',
     }
 
     filtre['nom_commune'] = filtre['nom_commune'].str.replace(
@@ -183,9 +179,6 @@ else:
     st.dataframe(affichage, hide_index=True, width='stretch')
     # Neutraliser les cellules texte pouvant être interprétées comme des formules.
     export = affichage.copy()
-    export['Disponibilité du nom'] = filtre['disponibilite_nom']
-    export['Code postal Sirene'] = filtre['code_postal']
-    export['Code postal masqué dans Sirene'] = filtre['code_postal_masque']
     for colonne in export.select_dtypes(include=['object', 'string']).columns:
         export[colonne] = export[colonne].map(lambda valeur: "'" + valeur if isinstance(valeur, str) and valeur.lstrip().startswith(('=', '+', '-', '@', '\t', '\r')) else valeur)
     st.download_button('Télécharger la sélection CSV', export.to_csv(index=False, sep=';').encode('utf-8-sig'), file_name=f'prospects_{pd.Timestamp(dates[0]):%Y%m%d}.csv', mime='text/csv')
@@ -198,9 +191,7 @@ with st.expander('Comprendre le classement'):
 **Priorité :** vert à partir de 81 points ; orange jusqu’à 80.
 À partir du premier anniversaire : hors périmètre V1, sans score ni couleur.
 
-**Activité administrative :** seuls les actifs à la dernière vérification sont affichés par défaut. Les inactifs et les cas à vérifier restent consultables via le filtre historique.
 La catégorie juridique sert à segmenter la sélection, sans supposer un budget ni ajouter de points.
 
 Le score exprime une priorité métier, pas une probabilité de vente.
-Les codes postaux masqués et les statuts de diffusion ne modifient pas le score.
 Les résultats ne sont pas une liste de contacts vérifiés.''')
