@@ -80,6 +80,7 @@ requis = {
     'libelle_age', 'couleur_priorite', 'score_total', 'score_anciennete', 'bonus_naf',
     'date_creation_entreprise', 'date_evaluation', 'date_reference', 'mois_collecte',
     'angle_commercial', 'version_score', 'anciennete_jours',
+    'disponibilite_nom', 'code_postal_affiche', 'source_code_postal', 'codes_postaux_commune',
 }
 if requis - set(donnees.columns):
     st.error('Les résultats ne contiennent pas toutes les colonnes attendues. Reconstruis les modèles dbt et republie les résultats.')
@@ -92,8 +93,7 @@ for colonne in ['siret', 'siren', 'code_departement', 'code_postal']:
 donnees['activite'] = donnees['naf_etablissement'].map(NAF).fillna('Autre activité')
 donnees['priorite'] = donnees['couleur_priorite'].map(PRIORITES).fillna('Hors périmètre V1')
 donnees['departement'] = donnees['code_departement'] + ' — ' + donnees['nom_departement']
-donnees['code_postal_affiche'] = donnees['code_postal'].fillna('Non renseigné')
-donnees.loc[donnees['code_postal_masque'].fillna(False), 'code_postal_affiche'] = 'Non diffusé'
+# L'affichage postal et sa provenance sont calculés par dbt.
 for colonne in ['date_evaluation', 'date_reference', 'date_creation_entreprise']:
     donnees[colonne] = pd.to_datetime(donnees[colonne])
 dates = donnees['date_evaluation'].dropna().unique()
@@ -110,11 +110,14 @@ ages = st.sidebar.multiselect('Âge', donnees.sort_values('anciennete_jours')['l
 activites = st.sidebar.multiselect('Activité', list(NAF.values()))
 departements = st.sidebar.multiselect('Département', sorted(donnees['departement'].dropna().unique()))
 mois = st.sidebar.multiselect('Mois de création collecté', sorted(donnees['mois_collecte'].unique()))
+disponibilite = st.sidebar.selectbox('Disponibilité du nom', ['Tous', 'Disponible', 'ND', 'NR'])
 recherche = st.sidebar.text_input('Nom, SIRET ou commune').strip()
 filtre = donnees[donnees['priorite'].isin(priorites)].copy()
 for colonne, choix in [('libelle_age', ages), ('activite', activites), ('departement', departements), ('mois_collecte', mois)]:
     if choix:
         filtre = filtre[filtre[colonne].isin(choix)]
+if disponibilite != 'Tous':
+    filtre = filtre[filtre['disponibilite_nom'].eq(disponibilite)]
 if recherche:
     masque = pd.Series(False, index=filtre.index)
     for colonne in ['nom_affiche', 'siret', 'nom_commune']:
@@ -127,6 +130,12 @@ for bloc, titre, valeur in zip(indicateurs,
     [len(filtre), filtre['couleur_priorite'].eq('vert').sum(), filtre['couleur_priorite'].eq('orange').sum(), filtre['score_total'].isna().sum()]):
     bloc.metric(titre, f'{valeur:,}'.replace(',', ' '))
 st.caption(f"Base complète : {len(donnees):,} établissements. Les indicateurs et graphiques suivent les filtres.".replace(',', ' '))
+
+compteurs_noms = st.columns(3)
+for bloc, statut in zip(compteurs_noms, ['Disponible', 'ND', 'NR']):
+    bloc.metric(f'Noms : {statut}', int(filtre['disponibilite_nom'].eq(statut).sum()))
+st.caption('ND : non diffusé par la source. NR : non renseigné dans les données disponibles.')
+st.caption('Commune (La Poste) : code issu du référentiel communal, non confirmé pour l’établissement. Plusieurs codes possibles : consulter la liste des codes de la commune. Le statut postal Sirene reste conservé dans l’export.')
 
 if filtre.empty:
     st.info('Aucun établissement ne correspond à ces filtres.')
@@ -142,7 +151,7 @@ else:
     filtre = filtre.sort_values(['score_total', 'date_creation_entreprise', 'siret'], ascending=[False, False, True], na_position='last')
     colonnes = {
         'nom_affiche': 'Entreprise', 'siret': 'SIRET', 'nom_commune': 'Commune',
-        'code_postal_affiche': 'Code postal', 'departement': 'Département',
+        'codes_postaux_commune': 'Code postal',
         'activite': 'Activité', 'libelle_age': 'Âge', 'priorite': 'Priorité',
         'angle_commercial': 'Angle commercial', 'score_total': 'Score total',
         'score_anciennete': 'Points ancienneté', 'bonus_naf': 'Bonus NAF', 
@@ -153,6 +162,9 @@ else:
     st.dataframe(affichage, hide_index=True, width='stretch')
     # Neutraliser les cellules texte pouvant être interprétées comme des formules.
     export = affichage.copy()
+    export['Disponibilité du nom'] = filtre['disponibilite_nom']
+    export['Code postal Sirene'] = filtre['code_postal']
+    export['Code postal masqué dans Sirene'] = filtre['code_postal_masque']
     for colonne in export.select_dtypes(include=['object', 'string']).columns:
         export[colonne] = export[colonne].map(lambda valeur: "'" + valeur if isinstance(valeur, str) and valeur.lstrip().startswith(('=', '+', '-', '@', '\t', '\r')) else valeur)
     st.download_button('Télécharger la sélection CSV', export.to_csv(index=False, sep=';').encode('utf-8-sig'), file_name=f'prospects_{pd.Timestamp(dates[0]):%Y%m%d}.csv', mime='text/csv')
