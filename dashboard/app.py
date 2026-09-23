@@ -158,6 +158,14 @@ else:
         'date_creation_entreprise': 'Création',
         'date_reference': 'Référence Sirene', 'date_evaluation': 'Évaluation',
     }
+
+    filtre['nom_commune'] = filtre['nom_commune'].str.replace(
+        r'^Paris\s+(\d{1,2}(?:er|e))\s+Arrondissement$',
+        r'Paris \1',
+        regex=True,
+        flags=2,
+    )
+
     affichage = filtre[list(colonnes)].rename(columns=colonnes)
     st.dataframe(affichage, hide_index=True, width='stretch')
     # Neutraliser les cellules texte pouvant être interprétées comme des formules.
