@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   actualiser:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
     env:
       INSEE_API_KEY: ${{ secrets.INSEE_API_KEY }}
@@ -27,8 +27,8 @@ jobs:
       PYTHONUNBUFFERED: "1"
       MOIS_DEMANDE: ${{ inputs.mois }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: pip
