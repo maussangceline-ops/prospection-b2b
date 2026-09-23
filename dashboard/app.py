@@ -80,6 +80,7 @@ requis = {
     'libelle_age', 'couleur_priorite', 'score_total', 'score_anciennete', 'bonus_naf',
     'date_creation_entreprise', 'date_evaluation', 'date_reference', 'mois_collecte',
     'angle_commercial', 'version_score', 'anciennete_jours',
+    'etat_activite', 'date_verification', 'libelle_categorie_juridique', 'activite_confirmee',
     'disponibilite_nom', 'code_postal_affiche', 'source_code_postal', 'codes_postaux_commune',
 }
 if requis - set(donnees.columns):
@@ -102,9 +103,17 @@ if len(dates) != 1:
     st.stop()
 date_score = pd.Timestamp(dates[0]).strftime('%d/%m/%Y')
 st.caption(f"Évaluation au {date_score} · Créations collectées de {donnees['mois_collecte'].min()} à {donnees['mois_collecte'].max()}")
-st.caption('Statuts administratifs correspondant à la date de collecte')
+derniere_verification = pd.to_datetime(donnees['date_verification']).max()
+st.caption(f"Activité vérifiée au {derniere_verification:%d/%m/%Y} · État connu lors de cette vérification, sans mise à jour en temps réel.")
+compteurs_activite = st.columns(3)
+for bloc, etat in zip(compteurs_activite, ['Actif', 'Inactif', 'À vérifier']):
+    bloc.metric(etat + ' · base complète', int(donnees['etat_activite'].eq(etat).sum()))
 
 st.sidebar.header('Votre sélection')
+etat_selection = st.sidebar.selectbox('Activité administrative',
+    ['Actif', 'Inactif', 'À vérifier', 'Tous (historique)'])
+categories = st.sidebar.multiselect('Catégorie juridique',
+    sorted(donnees['libelle_categorie_juridique'].dropna().unique()))
 priorites = st.sidebar.multiselect('Priorité', list(PRIORITES.values()) + ['Hors périmètre V1'], default=list(PRIORITES.values()) + ['Hors périmètre V1'])
 ages = st.sidebar.multiselect('Âge', donnees.sort_values('anciennete_jours')['libelle_age'].drop_duplicates().tolist())
 activites = st.sidebar.multiselect('Activité', list(NAF.values()))
@@ -113,7 +122,9 @@ mois = st.sidebar.multiselect('Mois de création collecté', sorted(donnees['moi
 disponibilite = st.sidebar.selectbox('Disponibilité du nom', ['Tous', 'Disponible', 'ND', 'NR'])
 recherche = st.sidebar.text_input('Nom, SIRET ou commune').strip()
 filtre = donnees[donnees['priorite'].isin(priorites)].copy()
-for colonne, choix in [('libelle_age', ages), ('activite', activites), ('departement', departements), ('mois_collecte', mois)]:
+if etat_selection != 'Tous (historique)':
+    filtre = filtre[filtre['etat_activite'].eq(etat_selection)]
+for colonne, choix in [('libelle_categorie_juridique', categories), ('libelle_age', ages), ('activite', activites), ('departement', departements), ('mois_collecte', mois)]:
     if choix:
         filtre = filtre[filtre[colonne].isin(choix)]
 if disponibilite != 'Tous':
@@ -135,7 +146,7 @@ compteurs_noms = st.columns(3)
 for bloc, statut in zip(compteurs_noms, ['Disponible', 'ND', 'NR']):
     bloc.metric(f'Noms : {statut}', int(filtre['disponibilite_nom'].eq(statut).sum()))
 st.caption('ND : non diffusé par la source. NR : non renseigné dans les données disponibles.')
-st.caption('Commune (La Poste) : code issu du référentiel communal, non confirmé pour l’établissement. Plusieurs codes possibles : consulter la liste des codes de la commune. Le statut postal Sirene reste conservé dans l’export.')
+st.caption('Code postal : code(s) associé(s) à la commune dans le référentiel La Poste, non confirmé(s) pour l’établissement.')
 
 if filtre.empty:
     st.info('Aucun établissement ne correspond à ces filtres.')
@@ -152,7 +163,9 @@ else:
     colonnes = {
         'nom_affiche': 'Entreprise', 'siret': 'SIRET', 'nom_commune': 'Commune',
         'codes_postaux_commune': 'Code postal',
-        'activite': 'Activité', 'libelle_age': 'Âge', 'priorite': 'Priorité',
+        'activite': 'Activité', 'libelle_categorie_juridique': 'Catégorie juridique',
+        'etat_activite': 'État administratif', 'date_verification': 'Activité vérifiée le',
+        'libelle_age': 'Âge', 'priorite': 'Priorité',
         'angle_commercial': 'Angle commercial', 'score_total': 'Score total',
         'score_anciennete': 'Points ancienneté', 'bonus_naf': 'Bonus NAF', 
         'date_creation_entreprise': 'Création',
@@ -184,6 +197,9 @@ with st.expander('Comprendre le classement'):
 
 **Priorité :** vert à partir de 81 points ; orange jusqu’à 80.
 À partir du premier anniversaire : hors périmètre V1, sans score ni couleur.
+
+**Activité administrative :** seuls les actifs à la dernière vérification sont affichés par défaut. Les inactifs et les cas à vérifier restent consultables via le filtre historique.
+La catégorie juridique sert à segmenter la sélection, sans supposer un budget ni ajouter de points.
 
 Le score exprime une priorité métier, pas une probabilité de vente.
 Les codes postaux masqués et les statuts de diffusion ne modifient pas le score.

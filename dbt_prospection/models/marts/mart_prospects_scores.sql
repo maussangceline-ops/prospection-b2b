@@ -8,11 +8,21 @@
 with entreprises as (
 
     select
-        *,
+        int_etablissements_enrichis.*,
+        stg_activite_actuelle.date_verification,
+        stg_activite_actuelle.statut_etablissement_actuel,
+        stg_activite_actuelle.statut_entreprise_actuel,
+        stg_activite_actuelle.categorie_juridique_actuelle,
+        stg_activite_actuelle.libelle_categorie_juridique,
+        coalesce(stg_activite_actuelle.etat_activite, 'À vérifier') as etat_activite,
+        coalesce(stg_activite_actuelle.etat_activite = 'Actif', false)
+            as activite_confirmee,
         cast('{{ date_evaluation }}' as date) as date_evaluation,
         'v1' as version_score
 
-    from {{ ref('int_etablissements_enrichis') }}
+    from {{ ref('int_etablissements_enrichis') }} as int_etablissements_enrichis
+    left join {{ ref('stg_activite_actuelle') }} as stg_activite_actuelle
+        on int_etablissements_enrichis.siret = stg_activite_actuelle.siret
 
 ),
 

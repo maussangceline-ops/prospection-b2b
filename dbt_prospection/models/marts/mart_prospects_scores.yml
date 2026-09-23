@@ -13,7 +13,8 @@ models:
       
       Ce classement repose sur des hypothèses commerciales,
       sans estimation de probabilité de conversion.
-      Les statuts Sirene restent ceux des données collectées.
+      Les statuts historiques restent conservés. Les statuts actuels sont vérifiés séparément.
+      L’activité et la catégorie juridique ne modifient pas le score.
 
     columns:
       - name: siret
@@ -94,3 +95,22 @@ models:
           puis âge en années révolues.
         data_tests:
           - not_null
+
+      - name: etat_activite
+        description: Actif, Inactif ou À vérifier à la dernière interrogation Sirene.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Actif', 'Inactif', 'À vérifier']
+      - name: activite_confirmee
+        description: Filtre d'activité du listing ; ne remplace pas le périmètre d'âge V1.
+        data_tests: [not_null]
+      - name: date_verification
+        description: Date UTC de référence de la vérification administrative.
+        data_tests: [not_null]
+      - name: categorie_juridique_actuelle
+        description: Code Sirene à la dernière vérification ; aucun bonus commercial.
+      - name: libelle_categorie_juridique
+        description: Libellé simplifié des catégories courantes, sinon code conservé.
+        data_tests: [not_null]

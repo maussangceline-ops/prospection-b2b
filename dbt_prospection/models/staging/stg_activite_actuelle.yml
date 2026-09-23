@@ -1,0 +1,24 @@
+version: 2
+sources:
+  - name: activite_raw
+    schema: raw
+    tables:
+      - name: verifications_activite
+        description: Dernière vérification complète, archive brute séparée dans S3.
+models:
+  - name: stg_activite_actuelle
+    description: >
+      État administratif à la date de vérification. Libellés simplifiés selon
+      https://www.insee.fr/fr/information/2028129 ; les autres codes restent visibles.
+      Un entrepreneur individuel n'est pas nécessairement micro-entrepreneur.
+    columns:
+      - name: siret
+        data_tests: [not_null, unique]
+      - name: date_verification
+        data_tests: [not_null]
+      - name: etat_activite
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Actif', 'Inactif', 'À vérifier']
