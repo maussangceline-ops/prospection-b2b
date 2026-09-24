@@ -1,0 +1,18 @@
+version: 2
+models:
+  - name: int_bonus_capital
+    description: >
+      Par SIREN, fenêtre de publication glissante de 12 mois (borne basse exclue).
+      Première hausse 50, suivantes 25, chaque baisse -25. Pas de plancher.
+      Déduplication des publications identiques et répétitions consécutives d'une
+      même transition. Aucune assimilation de la publication à la date d'effet.
+      L'état antérieur doit être publié à partir de la création de l'entreprise.
+    columns:
+      - name: siren
+        data_tests: [not_null, unique]
+      - name: nombre_hausses_capital_12_mois
+        data_tests: [not_null]
+      - name: nombre_baisses_capital_12_mois
+        data_tests: [not_null]
+      - name: bonus_capital_potentiel
+        data_tests: [not_null]

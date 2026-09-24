@@ -1,0 +1,20 @@
+version: 2
+sources:
+  - name: capital_raw
+    schema: raw
+    tables:
+      - name: capital_variations_a_confirmer
+        description: Comparaisons prudentes du collecteur BODACC ; date d'effet non établie.
+models:
+  - name: stg_capital_variations
+    description: >
+      Observations de variations. L'admissibilité commerciale utilise la publication,
+      sans confirmer la date juridique de l'opération. Montants, devise, chronologie
+      et description contrôlés. Les cas ambigus restent dans la table sans points.
+    columns:
+      - name: siren
+        data_tests: [not_null]
+      - name: id_annonce_apres
+        data_tests: [not_null]
+      - name: admissible_scoring_publication
+        data_tests: [not_null]

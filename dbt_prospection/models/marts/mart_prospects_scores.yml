@@ -3,11 +3,13 @@ version: 2
 models:
   - name: mart_prospects_scores
     description: >
-      Classement commercial V1.1 : bonus transferts confirmés (50 puis 25), selon l'ancienneté et l'activité NAF.
+      Classement commercial V1.2 : bonus transferts confirmés (50 puis 25), selon l'ancienneté et l'activité NAF.
       Les moins de 3 mois et les 9 à moins de 12 mois reçoivent
       100 points d'ancienneté ; les 3 à moins de 9 mois, 50 points.
       
       Bonus NAF : édition 30, conseil 20, programmation 10.
+      Capital : publications des 12 mois, première hausse 50 puis 25, baisse -25.
+      La date de publication ne remplace pas une date d’effet juridique.
       Orange jusqu'à 80 points inclus, vert à partir de 81.
       À partir de 12 mois, aucun score ni couleur.
       
@@ -34,7 +36,7 @@ models:
           - not_null
           - accepted_values:
               arguments:
-                values: ['v1.1']
+                values: ['v1.2']
 
       - name: anciennete_jours
         description: Nombre de jours entre création et évaluation.
@@ -128,3 +130,21 @@ models:
       - name: bonus_transferts_potentiel
         description: Bonus événementiel avant application du périmètre d'âge.
         data_tests: [not_null]
+
+      - name: nombre_hausses_capital_12_mois
+        data_tests: [not_null]
+      - name: nombre_baisses_capital_12_mois
+        data_tests: [not_null]
+      - name: bonus_capital_potentiel
+        description: 50 puis 25 par hausse, moins 25 par baisse, selon les publications BODACC.
+        data_tests: [not_null]
+      - name: bonus_capital
+        description: Bonus ou malus appliqué ; NULL hors périmètre d'âge V1.
+      - name: reference_date_capital
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [publication_bodacc]
+      - name: date_derniere_publication_capital
+        description: Dernière variation retenue publiée le jour indiqué, pas sa date d'effet.

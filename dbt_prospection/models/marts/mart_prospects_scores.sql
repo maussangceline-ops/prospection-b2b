@@ -28,10 +28,15 @@ with entreprises as (
             and stg_bodacc_controles.statut_bodacc = 'Aucune procédure repérée', false)
             as admissible_prospection,
         cast('{{ date_evaluation }}' as date) as date_evaluation,
-        'v1.1' as version_score,
+        'v1.2' as version_score,
         coalesce(int_bonus_transferts.nombre_transferts_12_mois, 0) as nombre_transferts_12_mois,
         int_bonus_transferts.date_dernier_transfert,
-        coalesce(int_bonus_transferts.bonus_transferts_potentiel, 0) as bonus_transferts_potentiel
+        coalesce(int_bonus_transferts.bonus_transferts_potentiel, 0) as bonus_transferts_potentiel,
+        coalesce(int_bonus_capital.nombre_hausses_capital_12_mois, 0) as nombre_hausses_capital_12_mois,
+        coalesce(int_bonus_capital.nombre_baisses_capital_12_mois, 0) as nombre_baisses_capital_12_mois,
+        coalesce(int_bonus_capital.bonus_capital_potentiel, 0) as bonus_capital_potentiel,
+        int_bonus_capital.date_derniere_publication_capital,
+        'publication_bodacc' as reference_date_capital
 
     from {{ ref('int_etablissements_enrichis') }} as int_etablissements_enrichis
     left join {{ ref('stg_activite_actuelle') }} as stg_activite_actuelle
@@ -41,6 +46,9 @@ with entreprises as (
 
     left join {{ ref('int_bonus_transferts') }} as int_bonus_transferts
         on int_etablissements_enrichis.siren = int_bonus_transferts.siren
+
+    left join {{ ref('int_bonus_capital') }} as int_bonus_capital
+        on int_etablissements_enrichis.siren = int_bonus_capital.siren
 
 ),
 
@@ -98,7 +106,9 @@ composantes as (
             else null
         end as bonus_naf,
         case when segment_anciennete in ('date_invalide', 'hors_perimetre_v1')
-            then null else bonus_transferts_potentiel end as bonus_transferts
+            then null else bonus_transferts_potentiel end as bonus_transferts,
+        case when segment_anciennete in ('date_invalide', 'hors_perimetre_v1')
+            then null else bonus_capital_potentiel end as bonus_capital
 
     from segmentation
 
@@ -108,7 +118,7 @@ total as (
 
     select
         *,
-        score_anciennete + bonus_naf + bonus_transferts as score_total
+        score_anciennete + bonus_naf + bonus_transferts + bonus_capital as score_total
 
     from composantes
 
@@ -116,6 +126,9 @@ total as (
 
 select
     *,
+    case when date_derniere_publication_capital is not null
+        then 'Variation de capital publiée le ' || strftime(date_derniere_publication_capital, '%d/%m/%Y')
+        else null end as libelle_publication_capital,
 
     case
         when segment_anciennete = 'lancement'
@@ -154,6 +167,8 @@ select
     end as couleur_priorite,
 
     case
+        when bonus_capital > 0 and bonus_transferts = 0
+            then 'Présenter clairement vos services et vos projets à de nouveaux clients.'
         when bonus_transferts > 0
             then 'Accompagner votre changement d’implantation avec des supports présentant clairement vos services.'
         when segment_anciennete = 'lancement'

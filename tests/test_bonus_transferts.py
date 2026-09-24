@@ -10,6 +10,7 @@ class BonusTests(unittest.TestCase):
     def setUp(self):
         self.db = duckdb.connect(':memory:')
         self.db.execute('create schema raw')
+        self.db.execute('create table int_bonus_capital(siren varchar, nombre_hausses_capital_12_mois bigint, nombre_baisses_capital_12_mois bigint, date_derniere_publication_capital date, bonus_capital_potentiel bigint)')
         self.db.execute("create table int_etablissements_enrichis(siren varchar, siret varchar, date_creation_entreprise date, naf_etablissement varchar)")
         self.db.execute("insert into int_etablissements_enrichis values ('1','100001','2026-02-01','62.01Z')")
         self.db.execute('create table stg_evenements_etablissements(siren varchar,siret_predecesseur varchar,siret_successeur varchar,date_evenement date,type_evenement varchar,qualification varchar,collecte_id varchar)')

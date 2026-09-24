@@ -188,6 +188,8 @@ with st.expander('Comprendre le classement'):
 
 **Activité :** édition +30 ; conseil +20 ; programmation +10.
 
+**Capital social — publications BODACC :** sur les 12 derniers mois, +50 pour la première hausse, +25 par hausse suivante, −25 par baisse. La date retenue est celle de publication, pas la date juridique de l’opération.
+
 **Priorité :** vert à partir de 81 points ; orange jusqu’à 80.
 À partir du premier anniversaire : hors périmètre V1, sans score ni couleur.
 
