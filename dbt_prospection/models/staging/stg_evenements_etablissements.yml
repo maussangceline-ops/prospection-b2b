@@ -1,0 +1,30 @@
+version: 2
+sources:
+  - name: mouvements_raw
+    schema: raw
+    tables:
+      - name: evenements_etablissements
+        description: Détection Sirene ; réponses et versions archivées dans S3.
+models:
+  - name: stg_evenements_etablissements
+    description: >
+      Événements à qualifier avant scoring. Fenêtre glissante de 12 mois,
+      borne inférieure exclue, date d'évaluation incluse. Aucun bonus appliqué.
+      Un lien de succession ne prouve pas une croissance de l'entreprise.
+    columns:
+      - name: evenement_id
+        data_tests: [not_null, unique]
+      - name: siren
+        data_tests: [not_null]
+      - name: qualification
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['confirme_par_lien', 'a_confirmer', 'a_verifier', 'hors_perimetre']
+      - name: type_evenement
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['transfert_etablissement', 'transfert_complexe', 'reprise_activite', 'ouverture_potentielle', 'etablissement_initial']
