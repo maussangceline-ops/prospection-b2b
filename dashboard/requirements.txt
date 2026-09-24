@@ -5,3 +5,4 @@ pyarrow==25.0.1
 duckdb==1.5.5
 boto3>=1.43.99,<2
 python-dotenv==1.2.3
+psycopg[binary]>=3.2,<4

@@ -3,6 +3,7 @@ import hashlib
 import io
 import json
 import os
+import sys
 from pathlib import Path
 
 import boto3
@@ -13,6 +14,9 @@ import streamlit as st
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parents[1]
+# Import local fiable dans Streamlit et dans AppTest.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import crm_ui
 NAF = {'58.29C': 'Édition de logiciels', '62.02A': 'Conseil informatique', '62.01Z': 'Programmation informatique'}
 PRIORITES = {'vert': '🟢 Prioritaire', 'orange': '🟠 Non prioritaire'}
 REQUIRED = {'siret','siren','nom_affiche','nom_commune','nom_departement','code_departement',
@@ -206,6 +210,8 @@ def main():
         st.header('Affiner la sélection')
         st.button('Réinitialiser les filtres',on_click=reset_filters,width='stretch')
         refresh=st.button('Actualiser les données',width='stretch',help='Recharge la dernière publication. Ne relance pas la collecte.')
+    crm_dsn=option('CRM_DATABASE_URL')
+    crm_active=crm_ui.profile(crm_dsn)
     if refresh:charger_donnees.clear()
     path=Path(option('DUCKDB_PATH',str(ROOT/'data/warehouse/prospection.duckdb')))
     mode=option('DATA_SOURCE','local' if path.is_file() else 's3')
@@ -256,8 +262,11 @@ def main():
                               [len(filtered),filtered['couleur_priorite'].eq('vert').sum(),filtered['couleur_priorite'].eq('orange').sum(),filtered['score_total'].isna().sum()]):
         col.metric(title,nombre(value))
     st.caption('Tous les indicateurs et exports suivent votre sélection. Aucun critère sélectionné dans un menu multiple signifie « tous ».')
-    view=st.radio('Navigation',['Prospects','Vue d’ensemble','Méthode'],horizontal=True,label_visibility='collapsed',key='navigation')
+    pages=['Prospects','Vue d’ensemble'] + (['Mon suivi'] if crm_active else []) + ['Méthode']
+    if st.session_state.get('navigation') not in pages:st.session_state['navigation']='Prospects'
+    view=st.radio('Navigation',pages,horizontal=True,label_visibility='collapsed',key='navigation')
     if view=='Méthode':methode();return
+    if view=='Mon suivi':crm_ui.suivi(filtered,crm_dsn,fiche);return
     if filtered.empty:
         st.info('Aucun résultat. Élargissez vos critères ou réinitialisez les filtres.');return
     if view=='Vue d’ensemble':
@@ -293,7 +302,10 @@ def main():
         file_name=f'prospects_{evaluated:%Y%m%d}.csv',mime='text/csv',width='content')
     st.caption('L’export contient toute la sélection filtrée, pas seulement la page affichée. Codes postaux : codes possibles de la commune.')
     selected=event.selection.rows
-    if selected and 0<=selected[0]<len(visible):fiche(visible.iloc[selected[0]])
+    if selected and 0<=selected[0]<len(visible):
+        chosen=visible.iloc[selected[0]]
+        fiche(chosen)
+        if crm_active:crm_ui.editor(str(chosen['siren']),crm_dsn)
     else:st.info('Sélectionnez un établissement dans le tableau pour lire son angle commercial et le détail de son score.')
 
 
