@@ -1,0 +1,16 @@
+version: 2
+models:
+  - name: int_bonus_transferts
+    description: >
+      Une ligne par SIREN ayant un transfert confirmé dans les 12 mois.
+      Déduplication par prédécesseur, successeur et date. Couverture vérifiée
+      dans la même collecte. Événements postérieurs à la création uniquement.
+      Premier transfert dans la fenêtre : 50 points, suivants : 25 chacun.
+      Le mart applique ensuite le périmètre d'âge V1.
+    columns:
+      - name: siren
+        data_tests: [not_null, unique]
+      - name: nombre_transferts_12_mois
+        data_tests: [not_null]
+      - name: bonus_transferts_potentiel
+        data_tests: [not_null]

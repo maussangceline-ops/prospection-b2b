@@ -28,13 +28,19 @@ with entreprises as (
             and stg_bodacc_controles.statut_bodacc = 'Aucune procédure repérée', false)
             as admissible_prospection,
         cast('{{ date_evaluation }}' as date) as date_evaluation,
-        'v1' as version_score
+        'v1.1' as version_score,
+        coalesce(int_bonus_transferts.nombre_transferts_12_mois, 0) as nombre_transferts_12_mois,
+        int_bonus_transferts.date_dernier_transfert,
+        coalesce(int_bonus_transferts.bonus_transferts_potentiel, 0) as bonus_transferts_potentiel
 
     from {{ ref('int_etablissements_enrichis') }} as int_etablissements_enrichis
     left join {{ ref('stg_activite_actuelle') }} as stg_activite_actuelle
         on int_etablissements_enrichis.siret = stg_activite_actuelle.siret
     left join {{ ref('stg_bodacc_controles') }} as stg_bodacc_controles
         on int_etablissements_enrichis.siren = stg_bodacc_controles.siren
+
+    left join {{ ref('int_bonus_transferts') }} as int_bonus_transferts
+        on int_etablissements_enrichis.siren = int_bonus_transferts.siren
 
 ),
 
@@ -90,7 +96,9 @@ composantes as (
             when naf_etablissement = '62.02A' then 20
             when naf_etablissement = '62.01Z' then 10
             else null
-        end as bonus_naf
+        end as bonus_naf,
+        case when segment_anciennete in ('date_invalide', 'hors_perimetre_v1')
+            then null else bonus_transferts_potentiel end as bonus_transferts
 
     from segmentation
 
@@ -100,7 +108,7 @@ total as (
 
     select
         *,
-        score_anciennete + bonus_naf as score_total
+        score_anciennete + bonus_naf + bonus_transferts as score_total
 
     from composantes
 
@@ -146,6 +154,8 @@ select
     end as couleur_priorite,
 
     case
+        when bonus_transferts > 0
+            then 'Accompagner votre changement d’implantation avec des supports présentant clairement vos services.'
         when segment_anciennete = 'lancement'
             then 'Clarifier votre offre pour convaincre vos premiers clients.'
         when segment_anciennete = 'developpement'

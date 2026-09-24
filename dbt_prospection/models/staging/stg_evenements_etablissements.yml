@@ -5,6 +5,10 @@ sources:
     tables:
       - name: evenements_etablissements
         description: Détection Sirene ; réponses et versions archivées dans S3.
+      - name: controles_mouvements
+        columns:
+          - name: siren
+            data_tests: [not_null, unique]
 models:
   - name: stg_evenements_etablissements
     description: >

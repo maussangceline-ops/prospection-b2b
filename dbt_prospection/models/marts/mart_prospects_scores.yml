@@ -3,7 +3,7 @@ version: 2
 models:
   - name: mart_prospects_scores
     description: >
-      Classement commercial V1 selon l'ancienneté et l'activité NAF.
+      Classement commercial V1.1 : bonus transferts confirmés (50 puis 25), selon l'ancienneté et l'activité NAF.
       Les moins de 3 mois et les 9 à moins de 12 mois reçoivent
       100 points d'ancienneté ; les 3 à moins de 9 mois, 50 points.
       
@@ -34,7 +34,7 @@ models:
           - not_null
           - accepted_values:
               arguments:
-                values: ['v1']
+                values: ['v1.1']
 
       - name: anciennete_jours
         description: Nombre de jours entre création et évaluation.
@@ -71,11 +71,6 @@ models:
 
       - name: score_total
         description: Somme des composantes ; NULL hors périmètre.
-        data_tests:
-          - accepted_values:
-              arguments:
-                values: [60, 70, 80, 110, 120, 130]
-                quote: false
 
       - name: couleur_priorite
         description: Orange ou vert ; NULL hors périmètre.
@@ -123,4 +118,13 @@ models:
       - name: statut_bodacc
         data_tests: [not_null]
       - name: date_verification_bodacc
+        data_tests: [not_null]
+
+      - name: nombre_transferts_12_mois
+        description: Nombre de transferts admissibles distincts dans la fenêtre.
+        data_tests: [not_null]
+      - name: bonus_transferts
+        description: Bonus appliqué, zéro sans transfert, NULL hors périmètre V1.
+      - name: bonus_transferts_potentiel
+        description: Bonus événementiel avant application du périmètre d'âge.
         data_tests: [not_null]
