@@ -1,7 +1,7 @@
 streamlit==1.64.0
-pandas==2.3.3
+plotly==7.1.0
+pandas>=2.3.3,<3
 pyarrow==25.0.1
 duckdb==1.5.5
-boto3==1.43.99
+boto3>=1.43.99,<2
 python-dotenv==1.2.3
-
