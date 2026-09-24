@@ -16,3 +16,5 @@ dbt_prospection/target/
 dbt_prospection/logs/
 dbt_prospection/dbt_packages/
 dbt_prospection/.user.yml
+# Sauvegardes locales
+*.bak
