@@ -1,0 +1,19 @@
+version: 2
+
+exposures:
+  - name: dashboard_prospection
+    label: Le Chant des SIREN — Dashboard de prospection
+    type: dashboard
+    maturity: low
+    url: https://prospection-b2b-jly47kskqkwibutp3afd43.streamlit.app/
+    description: >
+      Dashboard Streamlit de démonstration consommant mart_prospects_scores
+      après export par export_scores_s3.py dans Cloudflare R2, sous
+      processed/prospects/current.parquet. Affiche les prospects admissibles,
+      les priorités et les fiches. Le CRM associé lit et écrit séparément dans
+      Neon PostgreSQL, avec rattachement par SIREN, sans modifier le scoring.
+      Cette exposition décrit une dépendance ; elle ne déclenche aucun export.
+    depends_on:
+      - ref('mart_prospects_scores')
+    owner:
+      name: Céline Maussang

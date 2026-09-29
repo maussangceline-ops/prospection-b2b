@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1500" viewBox="0 0 2400 1500"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#52677e"/></marker></defs>
+<text x="45" y="53" font-family="DejaVu Sans,Arial,sans-serif" font-size="34" fill="#17324d" font-weight="700" text-anchor="start">LE CHANT DES SIREN</text>
+<text x="45" y="89" font-family="DejaVu Sans,Arial,sans-serif" font-size="24" fill="#17324d" font-weight="400" text-anchor="start">Pipeline en ligne • Cloudflare R2, DuckDB, dbt, Streamlit et Neon</text>
+<rect x="45" y="120" width="2310" height="102" rx="13" fill="#f4efff" stroke="#9270c8" stroke-width="2"/>
+<text x="65" y="154" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">GITHUB ACTIONS — orchestration de la chaîne</text>
+<text x="65" y="186" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Exécution finale prévue le 1er octobre 2026 à 05:17 UTC (07:17 Paris) • collecte de septembre 2026</text>
+<text x="65" y="213" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Collecte → archivage → chargement → contrôles et enrichissements → dbt build → publication vérifiée → désactivation du workflow</text>
+<text x="45" y="277" font-family="DejaVu Sans,Arial,sans-serif" font-size="22" fill="#17324d" font-weight="700" text-anchor="start">01  COLLECTE ET CHARGEMENT</text>
+<rect x="45" y="320" width="350" height="170" rx="13" fill="#eff6ff" stroke="#4385c5" stroke-width="2"/>
+<text x="65" y="354" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">INSEE • SIREN / SIRET</text>
+<text x="65" y="386" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Identité et création</text>
+<text x="65" y="413" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Activité, catégorie juridique</text>
+<text x="65" y="440" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Établissements et liens</text>
+<rect x="465" y="320" width="355" height="170" rx="13" fill="#eff6ff" stroke="#4385c5" stroke-width="2"/>
+<text x="485" y="354" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">Collecte mensuelle</text>
+<text x="485" y="386" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">collect_sirene.py</text>
+<text x="485" y="413" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">JSON locaux + collecte.json</text>
+<text x="485" y="440" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">upload_raw_s3.py : transfert</text>
+<rect x="890" y="320" width="350" height="170" rx="13" fill="#fff0f4" stroke="#c76d90" stroke-width="2"/>
+<text x="910" y="354" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">CLOUDFLARE R2 • raw</text>
+<text x="910" y="386" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Archives brutes JSON / CSV</text>
+<text x="910" y="413" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Collectes et référentiels</text>
+<text x="910" y="440" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Réponses vérifiées</text>
+<rect x="1310" y="320" width="400" height="170" rx="13" fill="#fff7e8" stroke="#d69b39" stroke-width="2"/>
+<text x="1330" y="354" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">DUCKDB • tables raw</text>
+<text x="1330" y="386" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">load_raw_duckdb.py</text>
+<text x="1330" y="413" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Charge les collectes SIREN/SIRET</text>
+<text x="1330" y="440" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">et les référentiels COG</text>
+<rect x="1790" y="320" width="565" height="240" rx="13" fill="#fff7e8" stroke="#d69b39" stroke-width="2"/>
+<text x="1810" y="354" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">DBT • transformation et tests</text>
+<text x="1810" y="386" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Sources raw → modèles staging</text>
+<text x="1810" y="413" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">→ enrichissements → scores prospects</text>
+<text x="1810" y="440" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Ancienneté + NAF + transferts + capital</text>
+<text x="1810" y="467" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Contrôles : unicité, valeurs, relations,</text>
+<text x="1810" y="494" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">volumes, admissibilité et cohérence</text>
+<path d="M 395,375 L 465,375" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="403" y="355" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">données</text>
+<path d="M 820,375 L 890,375" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="825" y="355" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">archive</text>
+<path d="M 1240,375 L 1310,375" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="1247" y="355" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">charge</text>
+<path d="M 1710,375 L 1790,375" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="1715" y="355" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">alimente</text>
+<text x="45" y="601" font-family="DejaVu Sans,Arial,sans-serif" font-size="22" fill="#17324d" font-weight="700" text-anchor="start">02  RÉFÉRENTIELS ET ENRICHISSEMENTS</text>
+<rect x="45" y="645" width="350" height="130" rx="13" fill="#eff6ff" stroke="#4385c5" stroke-width="2"/>
+<text x="65" y="679" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">Référentiels publics</text>
+<text x="65" y="711" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">INSEE COG : géographie</text>
+<text x="65" y="738" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">La Poste : codes communaux</text>
+<rect x="465" y="645" width="355" height="130" rx="13" fill="#eff6ff" stroke="#4385c5" stroke-width="2"/>
+<text x="485" y="679" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">Import des référentiels</text>
+<text x="485" y="711" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">COG : archives déjà dans R2</text>
+<text x="485" y="738" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">La Poste : load_codes_postaux.py</text>
+<rect x="45" y="840" width="350" height="130" rx="13" fill="#eff6ff" stroke="#4385c5" stroke-width="2"/>
+<text x="65" y="874" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">BODACC</text>
+<text x="65" y="906" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Annonces de procédures</text>
+<text x="65" y="933" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Observations de capital</text>
+<rect x="465" y="840" width="610" height="215" rx="13" fill="#eff6ff" stroke="#4385c5" stroke-width="2"/>
+<text x="485" y="874" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">Contrôles et événements</text>
+<text x="485" y="906" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">verify_current_activity.py : activité et forme juridique</text>
+<text x="485" y="933" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">collect_etablissement_events.py : mouvements</text>
+<text x="485" y="960" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">collect_bodacc.py : procédures collectives</text>
+<text x="485" y="987" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">collect_capital_bodacc.py : variations de capital</text>
+<path d="M 395,705 L 465,705" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<path d="M 395,900 L 465,900" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<path d="M 90,490 L 90,540 L 20,540 L 20,805 L 495,805 L 495,840" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="235" y="796" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">activité et mouvements</text>
+<path d="M 645,645 L 645,595 L 1000,595 L 1000,490" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="675" y="583" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">archive La Poste</text>
+<path d="M 820,705 L 1410,705 L 1410,490" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="1030" y="692" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">charge les codes postaux</text>
+<path d="M 1075,900 L 1510,900 L 1510,490" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="1110" y="887" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">écrit les résultats des contrôles</text>
+<path d="M 1310,465 L 1270,465 L 1270,815 L 1050,815 L 1050,840" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="1290" y="792" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">SIREN / SIRET à vérifier</text>
+<path d="M 930,840 L 930,750 L 860,750 L 860,530 L 1100,530 L 1100,490" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="877" y="733" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">archive les réponses</text>
+<rect x="1790" y="640" width="565" height="150" rx="13" fill="#fff0f4" stroke="#c76d90" stroke-width="2"/>
+<text x="1810" y="674" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">Export des scores</text>
+<text x="1810" y="706" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">export_scores_s3.py</text>
+<text x="1810" y="733" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Lecture du mart DuckDB → fichier Parquet</text>
+<text x="1810" y="760" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Publication et vérification du contenu</text>
+<path d="M 2060,560 L 2060,640" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="2074" y="605" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">mart validé</text>
+<rect x="1790" y="855" width="565" height="150" rx="13" fill="#fff0f4" stroke="#c76d90" stroke-width="2"/>
+<text x="1810" y="889" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">CLOUDFLARE R2 • processed</text>
+<text x="1810" y="921" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">processed/prospects/current.parquet</text>
+<text x="1810" y="948" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Version courante + exports historiques</text>
+<text x="1810" y="975" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Même bucket que les archives raw</text>
+<path d="M 2060,790 L 2060,855" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="2074" y="828" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">publie</text>
+<text x="45" y="1130" font-family="DejaVu Sans,Arial,sans-serif" font-size="22" fill="#17324d" font-weight="700" text-anchor="start">03  PROSPECTION ET SUIVI COMMERCIAL</text>
+<rect x="1790" y="1165" width="565" height="185" rx="13" fill="#ecf9f3" stroke="#35a47b" stroke-width="2"/>
+<text x="1810" y="1199" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">STREAMLIT • dashboard/app.py</text>
+<text x="1810" y="1231" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Lecture des scores publiés dans R2</text>
+<text x="1810" y="1258" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Filtres, priorités, fiches et export commercial</text>
+<text x="1810" y="1285" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Affichage des prospects admissibles</text>
+<text x="1810" y="1312" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Accès au suivi par entreprise</text>
+<path d="M 2060,1005 L 2060,1165" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="2076" y="1081" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">lit le Parquet</text>
+<rect x="1220" y="1165" width="480" height="185" rx="13" fill="#ecf9f3" stroke="#35a47b" stroke-width="2"/>
+<text x="1240" y="1199" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">CRM • interface et persistance</text>
+<text x="1240" y="1231" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">crm_ui.py ↔ crm_store.py</text>
+<text x="1240" y="1258" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Contact, statut, notes, fin de contrat</text>
+<text x="1240" y="1285" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Rattachement des fiches par SIREN</text>
+<text x="1240" y="1312" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Profil commercial de démonstration</text>
+<path d="M 1790,1245 L 1700,1245" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="1717" y="1225" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">ouvre</text>
+<rect x="770" y="1165" width="370" height="185" rx="13" fill="#fff7e8" stroke="#d69b39" stroke-width="2"/>
+<text x="790" y="1199" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">NEON • PostgreSQL</text>
+<text x="790" y="1231" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Stockage du suivi commercial</text>
+<text x="790" y="1258" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Lecture et écriture depuis le CRM</text>
+<text x="790" y="1285" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Initialisation : init_crm.py</text>
+<text x="790" y="1312" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">et sql/001_crm_demo.sql</text>
+<path d="M 1220,1220 L 1140,1220" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="1156" y="1203" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">écrit</text>
+<path d="M 1140,1285 L 1220,1285" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="1170" y="1310" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">lit</text>
+<rect x="45" y="1190" width="590" height="145" rx="13" fill="#ecf9f3" stroke="#35a47b" stroke-width="2"/>
+<text x="65" y="1224" font-family="DejaVu Sans,Arial,sans-serif" font-size="23" fill="#17324d" font-weight="700" text-anchor="start">COMMERCIAL</text>
+<text x="65" y="1256" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Consulte les prospects dans Streamlit</text>
+<text x="65" y="1283" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Saisit le suivi, les contacts et les notes</text>
+<text x="65" y="1310" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Le suivi CRM ne modifie pas le scoring</text>
+<path d="M 635,1330 L 690,1330 L 690,1380 L 2250,1380 L 2250,1350" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="1280" y="1406" font-family="DejaVu Sans,Arial,sans-serif" font-size="17" fill="#435b73" font-weight="400" text-anchor="start">utilise le dashboard et sa fiche CRM</text>
+<text x="45" y="1456" font-family="DejaVu Sans,Arial,sans-serif" font-size="18" fill="#17324d" font-weight="400" text-anchor="start">Lecture : les flèches indiquent les échanges de données ou les actions, selon leur libellé. R2 est un stockage ; storage_client.py en est le connecteur.</text>
+<path d="M 650,222 L 650,320" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)" stroke-dasharray="7 6"/>
+<path d="M 2300,222 L 2300,320" fill="none" stroke="#52677e" stroke-width="2.2" marker-end="url(#a)" stroke-dasharray="7 6"/>
+</svg>
