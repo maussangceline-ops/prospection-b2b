@@ -4,7 +4,7 @@ import io
 import os
 from pathlib import Path
 
-import boto3
+from dashboard.storage_client import storage_client
 import duckdb
 import pandas as pd
 from dotenv import load_dotenv
@@ -50,14 +50,14 @@ if local.is_file():
 else:
     print('\nParquet local absent')
 
-bucket = os.getenv('S3_BUCKET_NAME')
+bucket = os.getenv('R2_BUCKET_NAME')
 cle_defaut = 'processed/prospects/current.parquet'
 cles = list(dict.fromkeys([cle_defaut, os.getenv('S3_SCORES_KEY', cle_defaut)]))
 if not bucket:
-    raise SystemExit('S3_BUCKET_NAME absent du .env ou de l’environnement.')
-s3 = boto3.client('s3', region_name=os.getenv('AWS_DEFAULT_REGION', 'eu-west-3'))
+    raise SystemExit('R2_BUCKET_NAME absent du .env ou de l’environnement.')
+s3 = storage_client()
 for cle in cles:
-    print(f'\nObjet S3 : s3://{bucket}/{cle}')
+    print(f'\nObjet S3 : r2://{bucket}/{cle}')
     try:
         reponse = s3.get_object(Bucket=bucket, Key=cle)
         with reponse['Body'] as flux:

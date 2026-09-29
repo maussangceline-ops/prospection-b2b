@@ -59,7 +59,7 @@ class InterfaceTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.root=Path(self.temp.name)
         (self.root/'dashboard').mkdir()
-        for name in ['app.py','crm_ui.py','crm_store.py']:
+        for name in ['app.py','crm_ui.py','crm_store.py','storage_client.py']:
             shutil.copy(ROOT/'dashboard'/name,self.root/'dashboard'/name)
         (self.root/'dashboard/categories_juridiques.json').write_text(json.dumps({'libelles':{'5710':'Société par actions simplifiée'}}))
         db=self.root/'test.duckdb'

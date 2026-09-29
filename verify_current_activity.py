@@ -8,7 +8,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-import boto3
+from dashboard.storage_client import storage_client
 import duckdb
 import requests
 from dotenv import load_dotenv
@@ -68,9 +68,9 @@ def main():
     cle = os.getenv('INSEE_API_KEY')
     if not cle:
         raise SystemExit('INSEE_API_KEY absente.')
-    bucket = os.getenv('S3_BUCKET_NAME')
+    bucket = os.getenv('R2_BUCKET_NAME')
     if not args.local_only and not bucket:
-        raise SystemExit('S3_BUCKET_NAME absent.')
+        raise SystemExit('R2_BUCKET_NAME absent.')
     chemin_base = Path(os.getenv('DUCKDB_PATH', str(ROOT / 'data/warehouse/prospection.duckdb')))
     if not chemin_base.is_file():
         raise SystemExit('Charger DuckDB avant de vérifier les activités.')
@@ -118,7 +118,7 @@ def main():
                      nombres={etat: sum(l[6] == etat for l in lignes) for etat in ['Actif', 'Inactif', 'À vérifier']})
     suivi.write_text(json.dumps(manifeste, ensure_ascii=False, indent=2), encoding='utf-8')
     if not args.local_only:
-        s3 = boto3.client('s3')
+        s3 = storage_client()
         # Manifeste envoyé en dernier, seulement après toutes les réponses et la synthèse.
         fichiers = sorted(p for p in dossier.iterdir() if p != suivi) + [suivi]
         for fichier in fichiers:

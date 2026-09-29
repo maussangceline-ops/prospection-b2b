@@ -11,7 +11,7 @@ import unicodedata
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-import boto3
+from dashboard.storage_client import storage_client
 import duckdb
 import requests
 from dotenv import load_dotenv
@@ -174,9 +174,9 @@ def main():
     chemin = Path(os.getenv('DUCKDB_PATH', str(ROOT / 'data/warehouse/prospection.duckdb')))
     if not chemin.is_file():
         raise SystemExit('Charge DuckDB avant la collecte BODACC.')
-    bucket = os.getenv('S3_BUCKET_NAME')
+    bucket = os.getenv('R2_BUCKET_NAME')
     if not args.local_only and not bucket:
-        raise SystemExit('S3_BUCKET_NAME absent.')
+        raise SystemExit('R2_BUCKET_NAME absent.')
     with duckdb.connect(str(chemin), read_only=True) as connexion:
         sirens = [ligne[0] for ligne in connexion.execute(
             'select distinct substr(siret, 1, 9) from raw.sirene_etablissements order by 1').fetchall()]
@@ -219,7 +219,7 @@ def main():
                      repartition={etat: sum(l[3] == etat for l in lignes) for etat in sorted({l[3] for l in lignes})})
     suivi.write_text(json.dumps(manifeste, ensure_ascii=False, indent=2), encoding='utf-8')
     if not args.local_only:
-        s3 = boto3.client('s3')
+        s3 = storage_client()
         for fichier in sorted(p for p in dossier.iterdir() if p != suivi) + [suivi]:
             contenu = fichier.read_bytes()
             cle = f'raw/bodacc/{collecte_id}/{fichier.name}'

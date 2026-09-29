@@ -123,7 +123,7 @@ def recuperer_lot(session, sirens, jour, dossier, numero):
 
 
 def main():
-    import boto3
+    from dashboard.storage_client import storage_client
     import duckdb
     import requests
     from dotenv import load_dotenv
@@ -134,8 +134,8 @@ def main():
     load_dotenv(ROOT/'.env',override=False)
     db=Path(os.getenv('DUCKDB_PATH',str(ROOT/'data/warehouse/prospection.duckdb')))
     if not db.is_file(): raise SystemExit('Base DuckDB absente.')
-    bucket=os.getenv('S3_BUCKET_NAME')
-    if not args.local_only and not bucket: raise SystemExit('S3_BUCKET_NAME absent.')
+    bucket=os.getenv('R2_BUCKET_NAME')
+    if not args.local_only and not bucket: raise SystemExit('R2_BUCKET_NAME absent.')
     with duckdb.connect(str(db),read_only=True) as con:
         sirens=[r[0] for r in con.execute('select distinct substr(siret,1,9) from raw.sirene_etablissements order by 1').fetchall()]
     if not sirens or any(not re.fullmatch(r'\d{9}',s or '') for s in sirens): raise SystemExit('Population SIREN invalide.')
@@ -165,7 +165,7 @@ def main():
     save('observations.json',obs);save('variations_a_confirmer.json',candidates);save('diagnostic.json',report)
     meta.update(statut='terminee',nombre_annonces_siren=len(records));save('collecte.json',meta)
     if not args.local_only:
-        s3=boto3.client('s3'); files=sorted(p for p in folder.iterdir() if p.name!='collecte.json')+[folder/'collecte.json']
+        s3=storage_client(); files=sorted(p for p in folder.iterdir() if p.name!='collecte.json')+[folder/'collecte.json']
         for i,file in enumerate(files,1):
             body=file.read_bytes();key=f'raw/capital_bodacc/{run}/{file.name}'
             s3.put_object(Bucket=bucket,Key=key,Body=body,ContentType='application/json')

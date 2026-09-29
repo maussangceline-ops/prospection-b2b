@@ -52,8 +52,8 @@ def main():
     base = Path(os.getenv('DUCKDB_PATH', str(ROOT / 'data/warehouse/prospection.duckdb')))
     if not base.is_file():
         raise SystemExit('Charge d’abord DuckDB avec load_raw_duckdb.py.')
-    if not args.local_only and not os.getenv('S3_BUCKET_NAME'):
-        raise SystemExit('S3_BUCKET_NAME absent.')
+    if not args.local_only and not os.getenv('R2_BUCKET_NAME'):
+        raise SystemExit('R2_BUCKET_NAME absent.')
     if args.fichier:
         contenu = args.fichier.read_bytes()
     else:
@@ -71,12 +71,12 @@ def main():
     suivi = json.dumps(manifeste, ensure_ascii=False, indent=2).encode('utf-8')
     (dossier / 'referentiel.json').write_bytes(suivi)
     if not args.local_only:
-        import boto3
-        client = boto3.client('s3')
+        from dashboard.storage_client import storage_client
+        client = storage_client()
         for nom, donnees in [('codes_postaux.csv', contenu), ('referentiel.json', suivi)]:
             cle = f'raw/referentiels/postaux/{identifiant}/{nom}'
-            client.put_object(Bucket=os.environ['S3_BUCKET_NAME'], Key=cle, Body=donnees)
-            with client.get_object(Bucket=os.environ['S3_BUCKET_NAME'], Key=cle)['Body'] as flux:
+            client.put_object(Bucket=os.environ['R2_BUCKET_NAME'], Key=cle, Body=donnees)
+            with client.get_object(Bucket=os.environ['R2_BUCKET_NAME'], Key=cle)['Body'] as flux:
                 if hashlib.sha256(flux.read()).digest() != hashlib.sha256(donnees).digest():
                     raise RuntimeError('Vérification S3 échouée : ' + cle)
     with duckdb.connect(str(base)) as connexion:

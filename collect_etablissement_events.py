@@ -12,7 +12,7 @@ from collections import Counter, defaultdict
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-import boto3
+from dashboard.storage_client import storage_client
 import duckdb
 import requests
 from dotenv import load_dotenv
@@ -206,9 +206,9 @@ def main():
     load_dotenv(ROOT / '.env', override=False)
     if not os.getenv('INSEE_API_KEY'):
         raise SystemExit('INSEE_API_KEY absente.')
-    bucket = os.getenv('S3_BUCKET_NAME')
+    bucket = os.getenv('R2_BUCKET_NAME')
     if not args.local_only and not bucket:
-        raise SystemExit('S3_BUCKET_NAME absent.')
+        raise SystemExit('R2_BUCKET_NAME absent.')
     base = Path(os.getenv('DUCKDB_PATH', str(ROOT / 'data/warehouse/prospection.duckdb')))
     if not base.is_file():
         raise SystemExit('Base DuckDB introuvable.')
@@ -305,7 +305,7 @@ def main():
                      nombre_evenements=len(evenements), nombre_siren_a_verifier=len(controles_incomplets), qualifications=dict(Counter(e[6] for e in evenements)))
     suivi.write_text(json.dumps(manifeste,ensure_ascii=False,indent=2), encoding='utf-8')
     if not args.local_only:
-        s3=boto3.client('s3')
+        s3=storage_client()
         for fichier in sorted(p for p in dossier.iterdir() if p != suivi)+[suivi]:
             contenu=fichier.read_bytes(); cle=f'raw/mouvements_etablissements/{run}/{fichier.name}'
             s3.put_object(Bucket=bucket,Key=cle,Body=contenu,ContentType='application/json')

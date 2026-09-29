@@ -2,7 +2,7 @@ import os
 import json
 from pathlib import Path
 
-import boto3
+from dashboard.storage_client import storage_client
 from botocore.exceptions import BotoCoreError, ClientError
 from dotenv import load_dotenv
 
@@ -11,25 +11,20 @@ dossier_projet = Path(__file__).resolve().parent
 load_dotenv(dossier_projet / ".env", override=True)
 
 variables_requises = [
-    "AWS_ACCESS_KEY_ID",
-    "AWS_SECRET_ACCESS_KEY",
-    "AWS_DEFAULT_REGION",
-    "S3_BUCKET_NAME",
+    "R2_ACCESS_KEY_ID",
+    "R2_SECRET_ACCESS_KEY",
+    "R2_ENDPOINT_URL",
+    "R2_BUCKET_NAME",
 ]
 
 for variable in variables_requises:
     if not os.getenv(variable):
         raise SystemExit(f"Variable absente du .env : {variable}")
 
-bucket = os.environ["S3_BUCKET_NAME"]
+bucket = os.environ["R2_BUCKET_NAME"]
 
 # Utiliser explicitement les clés du projet.
-s3 = boto3.client(
-    "s3",
-    aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
-    aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
-    region_name=os.environ["AWS_DEFAULT_REGION"],
-)
+s3 = storage_client()
 
 dossier_raw = dossier_projet / "data" / "raw"
 dossier_sirene = dossier_raw / "sirene"

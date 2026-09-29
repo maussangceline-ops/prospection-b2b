@@ -6,7 +6,6 @@ import os
 import sys
 from pathlib import Path
 
-import boto3
 import duckdb
 import pandas as pd
 import plotly.express as px
@@ -17,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # Import local fiable dans Streamlit et dans AppTest.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import crm_ui
+from storage_client import storage_client
 NAF = {'58.29C': 'Édition de logiciels', '62.02A': 'Conseil informatique', '62.01Z': 'Programmation informatique'}
 PRIORITES = {'vert': '🟢 Prioritaire', 'orange': '🟠 Non prioritaire'}
 REQUIRED = {'siret','siren','nom_affiche','nom_commune','nom_departement','code_departement',
@@ -44,13 +44,7 @@ def charger_donnees(mode, chemin, empreinte, bucket, cle):
     if mode == 'local':
         with duckdb.connect(chemin, read_only=True) as connexion:
             return connexion.sql('select * from analytics.mart_prospects_scores').df()
-    args = {'region_name': option('AWS_DEFAULT_REGION', 'eu-west-3')}
-    access, secret = option('AWS_ACCESS_KEY_ID'), option('AWS_SECRET_ACCESS_KEY')
-    if access and secret:
-        args.update(aws_access_key_id=access, aws_secret_access_key=secret)
-        if option('AWS_SESSION_TOKEN'):
-            args['aws_session_token'] = option('AWS_SESSION_TOKEN')
-    client = boto3.client('s3', **args)
+    client = storage_client(option)
     response = client.get_object(Bucket=bucket, Key=cle)
     with response['Body'] as stream:
         return pd.read_parquet(io.BytesIO(stream.read()))
@@ -217,7 +211,7 @@ def main():
     mode=option('DATA_SOURCE','local' if path.is_file() else 's3')
     if mode not in ('local','s3') or (mode=='local' and not path.is_file()):
         st.error('Source de données indisponible. Contactez le responsable de l’application.');st.stop()
-    bucket=option('S3_BUCKET_NAME')
+    bucket=option('R2_BUCKET_NAME')
     if mode=='s3' and not bucket:
         st.error('La connexion aux résultats publiés n’est pas configurée.');st.stop()
     try:

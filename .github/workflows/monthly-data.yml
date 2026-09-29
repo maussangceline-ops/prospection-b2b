@@ -1,31 +1,47 @@
-name: Actualisation mensuelle Sirene
+name: Dernière actualisation — 1er octobre 2026 (R2)
 on:
   schedule:
-    - cron: '17 5 1 * *' # Le 1er du mois à 05:17 UTC
+    - cron: '17 5 1 10 *' # Garde ci-dessous : uniquement en 2026.
   workflow_dispatch:
-    inputs:
-      mois:
-        description: 'Mois AAAA-MM à collecter (vide = mois précédent)'
-        required: false
-        type: string
 permissions:
   contents: read
 concurrency:
   group: prospection-publication
   cancel-in-progress: false
 jobs:
-  actualiser:
+  calendrier:
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    outputs:
+      autorise: ${{ steps.date.outputs.autorise }}
+    steps:
+      - name: Autoriser uniquement le 1er octobre 2026 UTC
+        id: date
+        run: |
+          python - <<'PY'
+          import os
+          from datetime import datetime, timezone
+          autorise = datetime.now(timezone.utc).date().isoformat() == '2026-10-01'
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fichier:
+              fichier.write(f"autorise={'true' if autorise else 'false'}\n")
+          print('Date autorisée.' if autorise else 'Aucune collecte : hors de la date autorisée.')
+          PY
+  actualiser:
+    needs: calendrier
+    if: needs.calendrier.outputs.autorise == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    permissions:
+      contents: read
+      actions: write
     env:
       INSEE_API_KEY: ${{ secrets.INSEE_API_KEY }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: eu-west-3
-      S3_BUCKET_NAME: prospection-b2b-cmaussang-2026
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
+      R2_BUCKET_NAME: prospection-b2b
       DUCKDB_PATH: ${{ github.workspace }}/data/warehouse/prospection.duckdb
       PYTHONUNBUFFERED: "1"
-      MOIS_DEMANDE: ${{ inputs.mois }}
+      ONE_OFF_PUBLICATION_ID: final-2026-10-01
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -33,43 +49,67 @@ jobs:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: requirements-pipeline.txt
-      - name: Vérifier les secrets requis
+      - name: Vérifier la configuration
         run: |
-          python - <<'PYCODE'
+          python - <<'PY'
           import os
-          requis = ['INSEE_API_KEY', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY']
+          requis = ['INSEE_API_KEY','R2_ACCESS_KEY_ID','R2_SECRET_ACCESS_KEY','R2_ENDPOINT_URL','R2_BUCKET_NAME']
           absents = [nom for nom in requis if not os.getenv(nom)]
-          if absents:
-              raise SystemExit('Secrets GitHub manquants : ' + ', '.join(absents))
-          PYCODE
+          if absents: raise SystemExit('Configuration manquante : ' + ', '.join(absents))
+          PY
       - name: Installer les dépendances
         run: python -m pip install -r requirements-pipeline.txt
-      - name: Récupérer les référentiels déjà présents dans S3
+      - name: Contrôler le marqueur de publication unique
+        id: garde
+        run: python one_off_update.py check
+      - name: Récupérer les référentiels COG depuis R2
+        if: steps.garde.outputs.run == 'true'
         run: |
           python - <<'PY'
           import os
           from pathlib import Path
-          import boto3
-          dossier = Path('data/raw')
-          dossier.mkdir(parents=True, exist_ok=True)
-          s3 = boto3.client('s3')
-          for nom in ['v_commune_2026.csv', 'v_departement_2026.csv', 'v_region_2026.csv']:
-              s3.download_file(os.environ['S3_BUCKET_NAME'], f'raw/referentiels/cog/2026/{nom}', str(dossier / nom))
+          from dashboard.storage_client import storage_client
+          dossier = Path('data/raw'); dossier.mkdir(parents=True, exist_ok=True)
+          client = storage_client()
+          for nom in ['v_commune_2026.csv','v_departement_2026.csv','v_region_2026.csv']:
+              client.download_file(os.environ['R2_BUCKET_NAME'], f'raw/referentiels/cog/2026/{nom}', str(dossier/nom))
           PY
-      - name: Collecter le mois
-        run: |
-          if [ -n "$MOIS_DEMANDE" ]; then
-            python collect_sirene.py --mois "$MOIS_DEMANDE"
-          else
-            python collect_sirene.py
-          fi
-      - name: Transférer et vérifier les nouvelles données brutes
+      - name: Collecter exclusivement septembre 2026
+        if: steps.garde.outputs.run == 'true'
+        run: python collect_sirene.py --mois 2026-09
+      - name: Archiver et vérifier les nouvelles données dans R2
+        if: steps.garde.outputs.run == 'true'
         run: python upload_raw_s3.py
-      - name: Reconstruire DuckDB depuis toutes les collectes S3
+      - name: Reconstruire DuckDB depuis les collectes R2
+        if: steps.garde.outputs.run == 'true'
         run: python load_raw_duckdb.py
-      - name: Actualiser le référentiel postal La Poste
+      - name: Charger les codes postaux
+        if: steps.garde.outputs.run == 'true'
         run: python load_codes_postaux.py
+      - name: Vérifier les activités actuelles
+        if: steps.garde.outputs.run == 'true'
+        run: python verify_current_activity.py
+      - name: Contrôler les procédures BODACC
+        if: steps.garde.outputs.run == 'true'
+        run: python collect_bodacc.py
+      - name: Actualiser les mouvements des établissements
+        if: steps.garde.outputs.run == 'true'
+        run: python collect_etablissement_events.py
+      - name: Actualiser les variations de capital
+        if: steps.garde.outputs.run == 'true'
+        run: python collect_capital_bodacc.py
       - name: Transformer et tester toute la chaîne
-        run: dbt build --project-dir dbt_prospection --profiles-dir deployment/dbt
-      - name: Publier les résultats pour Streamlit
+        if: steps.garde.outputs.run == 'true'
+        run: dbt build --project-dir dbt_prospection --profiles-dir deployment/dbt --vars '{"date_evaluation":"2026-10-01"}'
+      - name: Publier le Parquet vérifié dans R2
+        if: steps.garde.outputs.run == 'true'
         run: python export_scores_s3.py
+      - name: Enregistrer la réussite définitive
+        if: steps.garde.outputs.run == 'true'
+        run: python one_off_update.py complete
+      - name: Désactiver ce workflow après publication
+        # Si les droits du dépôt l'interdisent, les gardes de date et de succès restent actives.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/monthly-data.yml/disable"
