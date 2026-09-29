@@ -222,8 +222,17 @@ def main():
     except (OSError,ValueError,KeyError) as error:
         st.error('Les résultats ou le référentiel ne sont pas exploitables. Contactez le responsable de l’application.')
         # Aucun contenu de configuration, secret ou exception AWS affiché.
-        if isinstance(error,ValueError) and str(error).startswith('Résultats incomplets'):
-            st.caption('Une publication plus récente du modèle de données est nécessaire.')
+        messages_autorises = (
+            "Configuration R2 manquante :",
+            "R2_ENDPOINT_URL doit être",
+            "Résultats incomplets :",
+            "Identifiants absents ou dupliqués",
+            "Les résultats doivent contenir une seule date",
+        )
+        if isinstance(error, ValueError) and str(error).startswith(messages_autorises):
+            st.caption(str(error))
+        else:
+            st.caption(f"Diagnostic : {type(error).__name__}")
         st.stop()
     except Exception:
         st.error('Chargement momentanément impossible. Réessayez ou contactez le responsable de l’application.');st.stop()
